@@ -2,6 +2,9 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+// Skor milestone takibi
+let lastMilestone = 0;
+
 // Mobil cihazlar için canvas boyutunu ayarla
 function resizeCanvas() {
     const container = canvas.parentElement;
@@ -374,12 +377,18 @@ function updateGame() {
         if (obstacle.y > canvas.height) {
             obstacles.splice(index, 1);
             score += 10;
+            
+            // 100 skor milestone kontrolü
+            checkScoreMilestone();
         }
         
         // Çarpışma kontrolü
         if (checkCollision(player, obstacle)) {
             lives--;
             obstacles.splice(index, 1);
+            
+            // Can kaybedildiğinde ses çal
+            playLifeLostSound();
             
             if (lives <= 0) {
                 gameOver();
@@ -448,6 +457,58 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
+// Can kaybedildiğinde ses çal
+function playLifeLostSound() {
+    try {
+        // Önce Hakan Yağar sesini dene
+        const hakanYagarSound = document.getElementById('hakanYagarSound');
+        if (hakanYagarSound) {
+            hakanYagarSound.currentTime = 0; // Sesi baştan başlat
+            hakanYagarSound.play().then(() => {
+                console.log('✅ Hakan Yağar sesi çalındı!');
+            }).catch(e => {
+                console.log('❌ Hakan Yağar sesi çalınamadı, alternatif ses kullanılıyor:', e);
+                playAlternativeSound();
+            });
+        } else {
+            playAlternativeSound();
+        }
+    } catch (e) {
+        console.log('❌ Ses çalınamadı:', e);
+        playAlternativeSound();
+    }
+}
+
+// Alternatif ses efekti (Web Audio API)
+function playAlternativeSound() {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        // Ses dalgası ayarları
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.3);
+        
+        // Ses seviyesi ayarları
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        
+        // Bağlantıları kur
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // Sesi çal
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+        
+        console.log('✅ Alternatif ses efekti çalındı!');
+    } catch (e) {
+        console.log('❌ Alternatif ses de çalınamadı:', e);
+    }
+}
+
 // Oyun bitti
 function gameOver() {
     gameRunning = false;
@@ -468,6 +529,9 @@ function gameOver() {
         gameOverMusic.currentTime = 0; // Şarkıyı baştan başlat
         gameOverMusic.play().catch(e => console.log('Müzik çalınamadı:', e));
     }
+    
+    // Oyun bittiğinde ek ses efekti de çal
+    playLifeLostSound();
 }
 
 // Oyunu başlat
@@ -483,8 +547,16 @@ function startGame() {
         gameOverMusic.currentTime = 0;
     }
     
+    // Can kaybetme sesini de durdur
+    const lifeLostSound = document.getElementById('lifeLostSound');
+    if (lifeLostSound) {
+        lifeLostSound.pause();
+        lifeLostSound.currentTime = 0;
+    }
+    
     // Oyunu sıfırla
     score = 0;
+    lastMilestone = 0; // Milestone'u da sıfırla
     lives = 3;
     gameSpeed = 5;
     obstacles = [];
@@ -505,6 +577,7 @@ function restartGame() {
     gameRunning = false;
     gameStarted = false;
     score = 0;
+    lastMilestone = 0; // Milestone'u da sıfırla
     lives = 3;
     gameSpeed = 5;
     obstacles = [];
@@ -518,6 +591,13 @@ function restartGame() {
     if (gameOverMusic) {
         gameOverMusic.pause();
         gameOverMusic.currentTime = 0;
+    }
+    
+    // Can kaybetme sesini de durdur
+    const lifeLostSound = document.getElementById('lifeLostSound');
+    if (lifeLostSound) {
+        lifeLostSound.pause();
+        lifeLostSound.currentTime = 0;
     }
     
     document.getElementById('gameOver').style.display = 'none';
@@ -538,10 +618,197 @@ function updateHighScoreDisplay() {
     }
 }
 
+// Test ses fonksiyonu
+function testSound() {
+    try {
+        // Önce Hakan Yağar sesini dene
+        const hakanYagarSound = document.getElementById('hakanYagarSound');
+        if (hakanYagarSound) {
+            hakanYagarSound.currentTime = 0;
+            hakanYagarSound.play().then(() => {
+                console.log('✅ Hakan Yağar test sesi çalındı!');
+            }).catch(e => {
+                console.log('❌ Hakan Yağar test sesi çalınamadı, alternatif ses kullanılıyor:', e);
+                playTestAlternativeSound();
+            });
+        } else {
+            playTestAlternativeSound();
+        }
+    } catch (e) {
+        console.log('❌ Test sesi çalınamadı:', e);
+        playTestAlternativeSound();
+    }
+}
+
+// Alternatif test sesi
+function playTestAlternativeSound() {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        // Test sesi ayarları
+        oscillator.type = 'square';
+        oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.2);
+        
+        // Ses seviyesi
+        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+        
+        // Bağlantıları kur
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // Sesi çal
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.2);
+        
+        console.log('✅ Alternatif test sesi çalındı!');
+    } catch (e) {
+        console.log('❌ Alternatif test sesi de çalınamadı:', e);
+    }
+}
+
+// Kadıköy Boğası test fonksiyonu
+function testBogasiSound() {
+    try {
+        const kadikoyBogasiSound = document.getElementById('kadikoyBogasiSound');
+        if (kadikoyBogasiSound) {
+            kadikoyBogasiSound.currentTime = 0;
+            kadikoyBogasiSound.play().then(() => {
+                console.log('🐂 Kadıköy Boğası test sesi çalındı!');
+            }).catch(e => {
+                console.log('❌ Kadıköy Boğası test sesi çalınamadı:', e);
+            });
+        } else {
+            console.log('❌ Kadıköy Boğası ses elementi bulunamadı!');
+        }
+    } catch (e) {
+        console.log('❌ Kadıköy Boğası test sesi çalınamadı:', e);
+    }
+}
+
+// 100 skor başarı sesi
+function playScoreMilestoneSound() {
+    try {
+        // Önce Kadıköy Boğası sesini dene
+        const kadikoyBogasiSound = document.getElementById('kadikoyBogasiSound');
+        if (kadikoyBogasiSound) {
+            kadikoyBogasiSound.currentTime = 0; // Sesi baştan başlat
+            kadikoyBogasiSound.play().then(() => {
+                console.log('🎉 Kadıköy Boğası başarı sesi çalındı!');
+            }).catch(e => {
+                console.log('❌ Kadıköy Boğası sesi çalınamadı, alternatif ses kullanılıyor:', e);
+                playAlternativeMilestoneSound();
+            });
+        } else {
+            playAlternativeMilestoneSound();
+        }
+    } catch (e) {
+        console.log('❌ Başarı sesi çalınamadı:', e);
+        playAlternativeMilestoneSound();
+    }
+}
+
+// Alternatif milestone sesi (Web Audio API)
+function playAlternativeMilestoneSound() {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Çoklu ses dalgası oluştur (daha zengin ses)
+        for (let i = 0; i < 3; i++) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            // Farklı frekanslar ve zamanlar
+            const startTime = audioContext.currentTime + (i * 0.1);
+            const frequency = 800 + (i * 200); // 800, 1000, 1200 Hz
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(frequency, startTime);
+            oscillator.frequency.exponentialRampToValueAtTime(frequency * 1.5, startTime + 0.3);
+            
+            // Ses seviyesi - yumuşak başlangıç ve bitiş
+            gainNode.gain.setValueAtTime(0, startTime);
+            gainNode.gain.linearRampToValueAtTime(0.15, startTime + 0.1);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.4);
+            
+            // Bağlantıları kur
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // Sesi çal
+            oscillator.start(startTime);
+            oscillator.stop(startTime + 0.4);
+        }
+        
+        console.log('🎉 Alternatif başarı sesi çalındı!');
+    } catch (e) {
+        console.log('❌ Alternatif başarı sesi de çalınamadı:', e);
+    }
+}
+
+// Skor milestone kontrolü
+function checkScoreMilestone() {
+    const currentMilestone = Math.floor(score / 100);
+    
+    if (currentMilestone > lastMilestone) {
+        lastMilestone = currentMilestone;
+        playScoreMilestoneSound();
+        
+        // Ekranda milestone mesajı göster
+        showMilestoneMessage(currentMilestone * 100);
+    }
+}
+
+// Milestone mesajını ekranda göster
+function showMilestoneMessage(milestoneScore) {
+    // Canvas üzerinde geçici mesaj göster
+    ctx.save();
+    ctx.fillStyle = '#F1C40F';
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = 'black';
+    ctx.shadowBlur = 4;
+    
+    const message = `🎉 ${milestoneScore} SKOR! 🎉`;
+    const x = canvas.width / 2;
+    const y = canvas.height / 2;
+    
+    // Mesajı çiz
+    ctx.fillText(message, x, y);
+    
+    // 2 saniye sonra mesajı temizle
+    setTimeout(() => {
+        drawGame(); // Oyunu yeniden çiz
+    }, 2000);
+    
+    ctx.restore();
+}
+
 // Sayfa yüklendiğinde en yüksek skoru göster ve canvas'ı boyutlandır
 document.addEventListener('DOMContentLoaded', () => {
     updateHighScoreDisplay();
     resizeCanvas();
+    
+    // Test ses butonuna event listener ekle
+    const testSoundBtn = document.getElementById('testSoundBtn');
+    if (testSoundBtn) {
+        testSoundBtn.addEventListener('click', testSound);
+        console.log('✅ Test ses butonu eklendi!');
+    } else {
+        console.log('❌ Test ses butonu bulunamadı!');
+    }
+    
+    // Kadıköy Boğası test butonuna event listener ekle
+    const testBogasiBtn = document.getElementById('testBogasiBtn');
+    if (testBogasiBtn) {
+        testBogasiBtn.addEventListener('click', testBogasiSound);
+        console.log('✅ Kadıköy Boğası test butonu eklendi!');
+    } else {
+        console.log('❌ Kadıköy Boğası test butonu bulunamadı!');
+    }
 });
 
 // Oyunu başlat
