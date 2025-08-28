@@ -44,19 +44,28 @@
 
         .game-info {
             display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 20px;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
             color: white;
-            font-size: clamp(0.9em, 3vw, 1.2em);
+            font-size: clamp(0.8em, 2.5vw, 1em);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .score, .speed, .lives {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 10px 15px;
-            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 12px;
+            border-radius: 8px;
             backdrop-filter: blur(5px);
             text-align: center;
+            min-width: 80px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         canvas {
@@ -65,7 +74,7 @@
             background: linear-gradient(to bottom, #87CEEB, #98FB98);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             width: 100%;
-            max-width: 800px;
+            max-width: 1000px;
             height: auto;
         }
 
@@ -259,11 +268,13 @@
             .game-info {
                 flex-direction: column;
                 gap: 8px;
+                padding: 10px 15px;
             }
             
             .score, .speed, .lives {
-                padding: 8px 12px;
-                font-size: 0.9em;
+                padding: 6px 10px;
+                font-size: 0.8em;
+                min-width: auto;
             }
             
             .controls {
@@ -384,11 +395,13 @@
             <div class="score">Skor: <span id="score">0</span></div>
             <div class="speed">Hız: <span id="speed">0</span> km/h</div>
             <div class="lives">Can: <span id="lives">3</span></div>
-            <button id="testSoundBtn" style="background: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; margin-top: 10px;">🎵 Hakan Yağar Test</button>
-            <button id="testBogasiBtn" style="background: #f39c12; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; margin-top: 10px; margin-left: 10px;">🐂 Kadıköy Boğası Test</button>
+            <div style="display: flex; gap: 8px; margin-top: 8px;">
+                <button id="testSoundBtn" style="background: #e74c3c; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 0.8em;">🎵 Test</button>
+                <button id="testBogasiBtn" style="background: #f39c12; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 0.8em;">🐂 Test</button>
+            </div>
         </div>
         
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <canvas id="gameCanvas" width="1000" height="700"></canvas>
         
         <div class="controls">
             <h3>🎮 Kontroller</h3>
